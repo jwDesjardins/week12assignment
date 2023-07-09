@@ -1,0 +1,39 @@
+body {
+    padding-top: 40px;
+    background-color: rgb(54, 18, 111);
+  }
+  
+  .container {
+    max-width: 600px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+  }
+  
+  h1 {
+    color: blue;
+  }
+  
+  .btn-primary {
+    background-color: blue;
+    border-color: blue;
+  }
+  
+  .btn-danger {
+    background-color: red;
+    border-color: red;
+  }
+  
+  .table {
+    background-color: white;
+  }
+  
+  .form-control {
+    border-color: blue;
+  }
+  
+  .flag-icon {
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+  

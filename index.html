@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Reservation System</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center"><span class="flag-icon"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="40" height="40" viewBox="0 0 30 30.000001" preserveAspectRatio="xMidYMid meet" version="1.0"><path fill="rgb(82.348633%, 10.978699%, 19.999695%)" d="M 2.597656 5.847656 L 26.550781 5.847656 L 26.550781 23.269531 L 2.597656 23.269531 Z M 2.597656 5.847656 " clip-rule="nonzero"/><path fill="rgb(0%, 12.548828%, 62.348938%)" d="M 2.597656 5.847656 L 26.550781 5.847656 L 26.550781 15 L 2.597656 15 Z M 2.597656 5.847656 " clip-rule="nonzero"/></svg></span> Hotel Reservation System</h1>
+        <h6 class="text-center">Liberty, Equality, Fraternity</h6> <br> <br>
+        <form id="reservationForm">
+            <div class="form-group">
+                <label for="guestName">Guest Name:</label>
+                <input type="text" class="form-control" id="guestName" placeholder="Enter guest name">
+            </div>
+            <div class="form-group">
+                <label for="roomType">Room:</label>
+                <select class="form-control" id="roomType">
+                    <option value="single">Single Room</option>
+                    <option value="double">Double Room</option>
+                    <option value="suite">Suite</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="checkIn">Check-In Date:</label>
+                <input type="date" class="form-control" id="checkIn">
+            </div>
+            <div class="form-group">
+                <label for="checkOut">Check-Out Date:</label>
+                <input type="date" class="form-control" id="checkOut">
+            </div>
+            <button type="submit" class="btn btn-primary">Make Reservation</button>
+        </form>
+        <br>
+        <table id="reservationTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Guest Name</th>
+                    <th>Room</th>
+                    <th>Check-In Date</th>
+                    <th>Check-Out Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="./script.js"></script>
+    <script>
+        $(document).ready(function () {
+            // API endpoint URL from MockAPI
+            var apiEndpoint = 'https://64a9a1c98b9afaf4844aed98.mockapi.io/api/v1/reservations';
+
+            // Retrieve existing reservations from the API
+            function fetchReservations() {
+                $.ajax({
+                    url: apiEndpoint,
+                    method: 'GET',
+                    success: function (data) {
+                        displayReservations(data);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log('Error:', textStatus, errorThrown);
+                    }
+                });
+            }
+
+            // Display reservations in the table
+            function displayReservations(reservations) {
+                var tableBody = $('#reservationTable tbody');
+                tableBody.empty();
+
+                reservations.forEach(function (reservation) {
+                    var row = '<tr>' +
+                        '<td>' + reservation.guestName + '</td>' +
+                        '<td>' + reservation.roomType + '</td>' +
+                        '<td>' + reservation.checkIn + '</td>' +
+                        '<td>' + reservation.checkOut + '</td>' +
+                        '<td>' +
+                        '<button class="btn btn-sm btn-info edit-btn" data-id="' + reservation.id + '">Edit</button> ' +
+                        '<button class="btn btn-sm btn-danger delete-btn" data-id="' + reservation.id + '">Delete</button>' +
+                        '</td>' +
+                        '</tr>';
+
+                    tableBody.append(row);
+                });
+            }
+
+            // Create a new reservation
+            $('#reservationForm').submit(function (event) {
+                event.preventDefault();
+
+                var guestName = $('#guestName').val();
+                var roomType = $('#roomType').val();
+                var checkIn = $('#checkIn').val();
+                var checkOut = $('#checkOut').val();
+
+                var reservation = {
+                    guestName: guestName,
+                    roomType: roomType,
+                    checkIn: checkIn,
+                    checkOut: checkOut
+                };
+
+                $.ajax({
+                    url: apiEndpoint,
+                    method: 'POST',
+                    data: reservation,
+                    success: function (data) {
+                        fetchReservations();
+                        $('#reservationForm')[0].reset();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log('Error:', textStatus, errorThrown);
+                    }
+                });
+            });
+
+            // Edit a reservation
+            $('#reservationTable').on('click', '.edit-btn', function () {
+                var reservationId = $(this).data('id');
+
+                // Retrieve the reservation data for editing
+                $.ajax({
+                    url: apiEndpoint + '/' + reservationId,
+                    method: 'GET',
+                    success: function (data) {
+                        $('#guestName').val(data.guestName);
+                        $('#roomType').val(data.roomType);
+                        $('#checkIn').val(data.checkIn);
+                        $('#checkOut').val(data.checkOut);
+
+                        // Update the form submit event to handle the update operation
+                        $('#reservationForm').off('submit').on('submit', function (event) {
+                            event.preventDefault();
+
+                            var updatedReservation = {
+                                guestName: $('#guestName').val(),
+                                roomType: $('#roomTypeThe corrected code is as follows:
+
+```html
+).val(),
+                                checkIn: $('#checkIn').val(),
+                                checkOut: $('#checkOut').val()
+                            };
+
+                            // Perform the update operation
+                            $.ajax({
+                                url: apiEndpoint + '/' + reservationId,
+                                method: 'PUT',
+                                data: updatedReservation,
+                                success: function (data) {
+                                    fetchReservations();
+                                    $('#reservationForm')[0].reset();
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    console.log('Error:', textStatus, errorThrown);
+                                }
+                            });
+                        });
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log('Error:', textStatus, errorThrown);
+                    }
+                });
+            });
+
+            // Delete a reservation
+            $('#reservationTable').on('click', '.delete-btn', function () {
+                var reservationId = $(this).data('id');
+
+                // Perform the delete operation
+                $.ajax({
+                    url: apiEndpoint + '/' + reservationId,
+                    method: 'DELETE',
+                    success: function (data) {
+                        fetchReservations();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log('Error:', textStatus, errorThrown);
+                    }
+                });
+            });
+
+            // Fetch and display existing reservations on page load
+            fetchReservations();
+        });
+    </script>
+</body>
+</html>
